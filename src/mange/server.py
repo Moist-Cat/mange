@@ -6,7 +6,10 @@ from json.encoder import JSONEncoder
 import logging
 import os
 import re
-import spec
+try:
+    import spec
+except ImportError:
+    spec = None
 import sys
 
 from flask import Blueprint, Flask, request, make_response
@@ -95,8 +98,8 @@ class APIView(FlaskView):
 
     def get_queryset(self, method, *args, **kwargs):
         cli = client
-        if "date" in kwargs:
-            kwargs["date"] = datetime.datetime.strptime(kwargs["date"], "%Y-%m-%d")
+        if "fecha" in kwargs:
+            kwargs["fecha"] = datetime.datetime.strptime(kwargs["fecha"], "%Y-%m-%d")
         return getattr(cli, f"{method}_{self.model}")(*args, **kwargs)
 
     @protected
@@ -204,13 +207,16 @@ def is_admin():
 def shutdown_session(exception=None):
   client.session.remove()
 
-class CompanyAPIView(APIView):
+class SucursalAPIView(APIView):
 	pass
     
-class BillAPIView(APIView):
+class AreaAPIView(APIView):
 	pass
 
-class ItemAPIView(APIView):
+class RegistroAPIView(APIView):
+    pass
+    
+class EquipoAPIView(APIView):
     pass
 
 class UserAPIView(APIView):
