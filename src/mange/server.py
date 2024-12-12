@@ -1,5 +1,6 @@
-import importlib
 import base64
+import datetime
+import importlib
 from functools import wraps
 from json.encoder import JSONEncoder
 import logging
@@ -30,6 +31,8 @@ class ModelSerializer(JSONEncoder):
     def default(self, o):
         if isinstance(o, Base):
             return o.as_dict()
+        if isinstance(o, datetime.datetime):
+            return o.strftime("%Y-%m-%d")
         return super().default(o)
 
 def import_from_path(module_name, file_path):
@@ -92,6 +95,8 @@ class APIView(FlaskView):
 
     def get_queryset(self, method, *args, **kwargs):
         cli = client
+        if "date" in kwargs:
+            kwargs["date"] = datetime.datetime.strptime(kwargs["date"], "%Y-%m-%d")
         return getattr(cli, f"{method}_{self.model}")(*args, **kwargs)
 
     @protected
@@ -104,27 +109,27 @@ class APIView(FlaskView):
         return self.get_queryset("get").all()
 
     @protected
-    def get(self, id: str):
-        if not id.isdigit():
-            raise APIException("The ID field must be an integer")
-        id = int(id)
+    def get(self, id: int):
         return self.get_queryset("get", **{self.pk_field: id}).one()
 
     @protected
-    def update(self, id):
+    def put(self, id: int):
         # here I would get the post data and update stuff
         kwargs = request.json
 
         obj = self.get_queryset("get", **{self.pk_field: id}).one()
         nu_obj = client.update(obj, **kwargs)
 
+        client.session.commit()
+
         return nu_obj.as_dict()
 
     @protected
-    def delete(self, id):
+    def delete(self, id: int):
         obj = self.get_queryset("get", **{self.pk_field: id}).one()
 
-        client.session.remove(obj)
+        client.session.delete(obj)
+        client.session.commit()
 
         return {}
 
