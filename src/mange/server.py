@@ -218,7 +218,7 @@ class UserAPIView(APIView):
     @route("/login/")
     def login(self):
         post_data = request.json
-        if not "name" in post_data and "password" in post_data:
+        if not "name" in post_data or not "password" in post_data:
             raise APIException("fields ('name','password') are required")
         
         name = post_data["name"]
