@@ -215,7 +215,7 @@ class ItemAPIView(APIView):
 
 class UserAPIView(APIView):
     
-    @route("/login/")
+    @route("/login/", methods=["GET", "POST"])
     def login(self):
         post_data = request.json
         if not "name" in post_data or not "password" in post_data:
