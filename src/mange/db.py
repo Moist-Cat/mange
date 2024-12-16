@@ -70,30 +70,32 @@ class Sucursal(Base):
     limite = Column(Integer, nullable=False)
     porciento_extra = Column(Integer, default=15, nullable=False)
     aumento = Column(Integer, default=20, nullable=False)
-    # areas = relationship("Area",back_populates="sucursal",uselist=True)
-    # registros = relationship("Registro",back_populates="sucursal",uselist=True)
+
+    last_reading = Column(Integer, nullable=False)
+    reading = Column(Integer, nullable=False)
 
     def calculate(self):
-        return (self.reading - self.last_reading)*(100 + self.extra_percent)//100 + self.extra
+        return (self.reading - self.last_reading)*(100 + self.porciento_extra)//100 + self.aumento
 
     @property
     def over_limit(self):
-        return max(0, self.reading - self.limit)
+        return max(0, self.reading - self.limite)
 
 class Area(Base):
     nombre = Column(String,nullable=False)
     responsable = Column(String,nullable=False)
+
     id_sucursal = Column(Integer,ForeignKey("sucursal.id"),nullable=False)
-    # equipo = relationship("Equipo",back_populates="area",uselist=True)
-    # sucursal = relationship("Sucursal",back_populates="area")
+    sucursal = relationship("Sucursal",backref="area")
     
 class Registro(Base):
     lectura = Column(Integer, nullable=False)
     costo = Column(Integer, nullable=False)
     sobre_limite = Column(Integer, nullable=False)
     fecha = Column(DateTime,nullable=False)
+
     id_sucursal = Column(Integer,ForeignKey("sucursal.id"),nullable=False)
-    # sucursal = relationship("Sucursal",back_populates="registro")
+    sucursal = relationship("Sucursal",backref="registro")
     
 class Equipo(Base):
     modelo = Column(String)
@@ -107,7 +109,9 @@ class Equipo(Base):
     tipo = Column(String)
     marca = Column(String)
     sistema_energia_critica = Column(Boolean)
-    # area = relationship("Area",back_populates="equipo")
+
+    id_area = Column(Integer,ForeignKey("area.id"),nullable=False)
+    area = relationship("Area",backref="equipo")
 
 class Group(Base):
     name = Column(String, unique=True)

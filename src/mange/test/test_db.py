@@ -41,38 +41,38 @@ class Test_API(unittest.TestCase):
 
         self.assertEqual(self.client.login(name="blob", password="doko"), user.token)
 
-    def test_liquidate_bill(self):
-        company = self.client.create_company(name="blobcorp", last_reading=0, reading=0, limit=100)
+    def test_liquidate_registro(self):
+        sucursal = self.client.create_sucursal(nombre="blobcorp", last_reading=0, reading=0, limite=100)
         self.client.session.commit()
 
-        company.reading = 50
+        sucursal.reading = 50
 
-        bill = self.client.liquidate_bill(company)
+        registro = self.client.liquidate_bill(sucursal)
 
-        self.assertEqual(company.last_reading, company.reading)
-        self.assertEqual(bill.over_limit, 0)
+        self.assertEqual(sucursal.last_reading, sucursal.reading)
+        self.assertEqual(registro.sobre_limite, 0)
 
-        company.reading = 150
+        sucursal.reading = 150
 
-        bill = self.client.liquidate_bill(company)
-        self.assertEqual(bill.over_limit, 50)
+        registro = self.client.liquidate_bill(sucursal)
+        self.assertEqual(registro.sobre_limite, 50)
 
     def test_total_consumption(self):
-        company = self.client.create_company(name="blobcorp", last_reading=0, reading=100, limit=9999)
+        sucursal = self.client.create_sucursal(nombre="blobcorp", last_reading=0, reading=100, limite=9999)
         self.client.session.commit()
 
-        company.reading = 150
-        bill = self.client.liquidate_bill(company, date=datetime(2000, 10, 1))
+        sucursal.reading = 150
+        registro = self.client.liquidate_bill(sucursal, date=datetime(2000, 10, 1))
 
-        company.reading = 300
-        bill = self.client.liquidate_bill(company, date=datetime(2000, 10, 2))
+        sucursal.reading = 300
+        registro = self.client.liquidate_bill(sucursal, date=datetime(2000, 10, 2))
 
-        company.reading = 500
-        bill = self.client.liquidate_bill(company, date=datetime(2000, 10, 3))
+        sucursal.reading = 500
+        registro = self.client.liquidate_bill(sucursal, date=datetime(2000, 10, 3))
 
         self.assertEqual(
             self.client.total_consumption(
-                company,
+                sucursal,
                 start_date=datetime(2000, 10, 1),
                 end_date=datetime(2000, 10, 3)
             ),
@@ -80,13 +80,13 @@ class Test_API(unittest.TestCase):
         )
 
     def test_over_consumption(self):
-        company = self.client.create_company(name="blobcorp", last_reading=0, reading=1, limit=0)
+        sucursal = self.client.create_sucursal(nombre="blobcorp", last_reading=0, reading=1, limite=0)
         self.client.session.commit()
-        bill = self.client.liquidate_bill(company, date=datetime(2000, 10, 1))
+        registro = self.client.liquidate_bill(sucursal, date=datetime(2000, 10, 1))
 
         self.assertEqual(
             self.client.over_consumption(start_date=datetime(2000, 10, 1), end_date=datetime(2000, 10, 1)),
-            [bill],
+            [registro],
         )
 
 

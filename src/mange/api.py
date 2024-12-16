@@ -224,20 +224,21 @@ class Client:
         self.update(company, last_reading=company.reading)
         self.session.commit()
 
-        return self.create_bill(
-            company=company,
-            date=date or datetime.today(),
-            reading=company.reading,
-            over_limit=over_limit
+        return self.create_registro(
+            sucursal=company,
+            fecha=date or datetime.today(),
+            lectura=company.reading,
+            sobre_limite=over_limit,
+            costo=cost,
         )
     
     # high-level
     def total_consumption(self, company, start_date, end_date):
         # select * between start_date and end_date
-        start = self._get(Bill, date=start_date, company_id=company.id).one()
-        end = self._get(Bill, date=end_date, company_id=company.id).one()
+        start = self._get(Registro, fecha=start_date, id_sucursal=company.id).one()
+        end = self._get(Registro, fecha=end_date, id_sucursal=company.id).one()
 
-        return end.reading - start.reading
+        return end.lectura - start.lectura
 
     def average_consumption(self, company, start_date, end_date):
         """
@@ -248,7 +249,7 @@ class Client:
 
     def over_consumption(self, start_date, end_date):
         # select company, over_limit where over_limit > 0
-        return self._get(Bill).filter(Bill.over_limit > 0).all()
+        return self._get(Registro).filter(Registro.sobre_limite > 0).all()
 
     def predict_consumption(self, company, start_date, end_date):
         # :^)
@@ -258,8 +259,8 @@ class Client:
         """
         a frecuencia de uso (>every time one uses an item they must register it manually wtf)
         """
-        return self._get(Bill).filter(Bill.date >= start_date).filter(Bill.date <= end_date).all()
+        return self._get(Registro).filter(Registro.fecha >= start_date).filter(Registro.fecha <= end_date).all()
 
     def list_alerts(self, company):
         # select * where over_limit>1 and company_id = company.id
-        return self._get(Bill, company_id=company.id).filter(Bill.over_limit > 0).all()
+        return self._get(Registro, company_id=company.id).filter(Registro.sobre_limite > 0).all()
