@@ -63,22 +63,15 @@ class Base:
 
     id = Column(Integer, primary_key=True, nullable=False)
 
-class Company(Base):
-    """
-    Metadata corresponding to a given company.
-
-    :last_reading: Last reading for the company (kWh)
-    :reading: Current reading for the company (kWh)
-    :extra_percent: and :extra: are used to calculate the final cost
-    :limit: 
-    """
-    name = Column(String, unique=True, nullable=False)
-
-    last_reading = Column(Integer, nullable=False)
-    reading = Column(Integer, nullable=False)
-    extra_percent = Column(Integer, default=15)
-    extra = Column(Integer, default=20)
-    limit = Column(Integer, nullable=False)
+class Sucursal(Base):
+    nombre = Column(String, unique=True, nullable=False)
+    tipo = Column(String)
+    direccion = Column(String)
+    limite = Column(Integer, nullable=False)
+    porciento_extra = Column(Integer, default=15, nullable=False)
+    aumento = Column(Integer, default=20, nullable=False)
+    # areas = relationship("Area",back_populates="sucursal",uselist=True)
+    # registros = relationship("Registro",back_populates="sucursal",uselist=True)
 
     def calculate(self):
         return (self.reading - self.last_reading)*(100 + self.extra_percent)//100 + self.extra
@@ -87,25 +80,34 @@ class Company(Base):
     def over_limit(self):
         return max(0, self.reading - self.limit)
 
-class Item(Base):
-    """
-    Item corresponding to a company
-    """
-
-    company_id = Column(None, ForeignKey("company.id"), nullable=False)
-    company = relationship(Company, backref="items")
-    # metadata
-
-class Bill(Base):
-    """
-    """
-    # company
-    company_id = Column(None, ForeignKey("company.id"), nullable=False)
-    company = relationship(Company, backref="bills")
-
-    date = Column(DateTime, nullable=False)
-    reading = Column(Integer, nullable=False)
-    over_limit = Column(Integer, default=0)
+class Area(Base):
+    nombre = Column(String,nullable=False)
+    responsable = Column(String,nullable=False)
+    id_sucursal = Column(Integer,ForeignKey("sucursal.id"),nullable=False)
+    # equipo = relationship("Equipo",back_populates="area",uselist=True)
+    # sucursal = relationship("Sucursal",back_populates="area")
+    
+class Registro(Base):
+    lectura = Column(Integer, nullable=False)
+    costo = Column(Integer, nullable=False)
+    sobre_limite = Column(Integer, nullable=False)
+    fecha = Column(DateTime,nullable=False)
+    id_sucursal = Column(Integer,ForeignKey("sucursal.id"),nullable=False)
+    # sucursal = relationship("Sucursal",back_populates="registro")
+    
+class Equipo(Base):
+    modelo = Column(String)
+    consumo_diario_promedio = Column(Integer)
+    estado_de_mantenimiento = Column(String)
+    eficiencia_energetica = Column(String)
+    capacidad_nominal = Column(Integer)
+    vida_util_estimada = Column(Integer)
+    fecha_instalacion = Column(DateTime)
+    frecuencia_de_uso = Column(String)
+    tipo = Column(String)
+    marca = Column(String)
+    sistema_energia_critica = Column(Boolean)
+    # area = relationship("Area",back_populates="equipo")
 
 class Group(Base):
     name = Column(String, unique=True)
